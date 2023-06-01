@@ -1,0 +1,80 @@
+Dump of assembler code for function phase_3:
+   0x0000555555556679 <+0>:     endbr64 
+   0x000055555555667d <+4>:     sub    $0x18,%rsp                                       // making stack frame
+   0x0000555555556681 <+8>:     mov    %fs:0x28,%rax
+   0x000055555555668a <+17>:    mov    %rax,0x8(%rsp)
+   0x000055555555668f <+22>:    xor    %eax,%eax                                        // set eax to 0 by xoring it with itself
+   0x0000555555556691 <+24>:    lea    0x4(%rsp),%rcx
+   0x0000555555556696 <+29>:    mov    %rsp,%rdx
+   0x0000555555556699 <+32>:    lea    0x1d8d(%rip),%rsi        # 0x55555555842d        // what are we moving here
+   0x00005555555566a0 <+39>:    callq  0x5555555562f0 <__isoc99_sscanf@plt>             // function that takes input
+   0x00005555555566a5 <+44>:    cmp    $0x1,%eax                                        // comparing result from input (eax) with 1
+   0x00005555555566a8 <+47>:    jle    0x5555555566c8 <phase_3+79>                      // if input > 1 then jump past explode_bomb
+
+   0x00005555555566aa <+49>:    cmpl   $0x7,(%rsp)                                      // comparing value at $rsp with 7
+   0x00005555555566ae <+53>:    ja     0x55555555674c <phase_3+211>                     // jump to bomb if above 7 because j*a*
+   0x00005555555566b4 <+59>:    mov    (%rsp),%eax                                      // move value from rsp to eax
+   0x00005555555566b7 <+62>:    lea    0x1ac2(%rip),%rdx        # 0x555555558180
+
+   0x00005555555566be <+69>:    movslq (%rdx,%rax,4),%rax
+   0x00005555555566c2 <+73>:    add    %rdx,%rax
+   0x00005555555566c5 <+76>:    notrack jmpq *%rax
+   0x00005555555566c8 <+79>:    callq  0x555555556e41 <explode_bomb>
+   0x00005555555566cd <+84>:    jmp    0x5555555566aa <phase_3+49>
+   0x00005555555566cf <+86>:    mov    $0x17d,%eax
+   0x00005555555566d4 <+91>:    sub    $0x2ed,%eax
+   0x00005555555566d9 <+96>:    add    $0x64,%eax
+   0x00005555555566dc <+99>:    sub    $0xce,%eax
+   0x00005555555566e1 <+104>:   add    $0xce,%eax
+   0x00005555555566e6 <+109>:   sub    $0xce,%eax
+   0x00005555555566eb <+114>:   add    $0xce,%eax
+   0x00005555555566f0 <+119>:   sub    $0xce,%eax
+
+   0x00005555555566f5 <+124>:   cmpl   $0x5,(%rsp)
+   0x00005555555566f9 <+128>:   jg     0x555555556701 <phase_3+136>
+   0x00005555555566fb <+130>:   cmp    %eax,0x4(%rsp)                                  // compares $rsp+8 to %eax --> answer is in %eax!
+   0x00005555555566ff <+134>:   je     0x555555556706 <phase_3+141>
+   0x0000555555556701 <+136>:   callq  0x555555556e41 <explode_bomb>
+   0x0000555555556706 <+141>:   mov    0x8(%rsp),%rax
+   0x000055555555670b <+146>:   xor    %fs:0x28,%rax
+   0x0000555555556714 <+155>:   jne    0x555555556758 <phase_3+223>
+   0x0000555555556716 <+157>:   add    $0x18,%rsp
+   0x000055555555671a <+161>:   retq   
+   0x000055555555671b <+162>:   mov    $0x0,%eax
+   0x0000555555556720 <+167>:   jmp    0x5555555566d4 <phase_3+91>
+   0x0000555555556722 <+169>:   mov    $0x0,%eax
+   0x0000555555556727 <+174>:   jmp    0x5555555566d9 <phase_3+96>
+   0x0000555555556729 <+176>:   mov    $0x0,%eax
+   0x000055555555672e <+181>:   jmp    0x5555555566dc <phase_3+99>
+   0x0000555555556730 <+183>:   mov    $0x0,%eax
+   0x0000555555556735 <+188>:   jmp    0x5555555566e1 <phase_3+104>
+   0x0000555555556737 <+190>:   mov    $0x0,%eax
+   0x000055555555673c <+195>:   jmp    0x5555555566e6 <phase_3+109>
+   0x000055555555673e <+197>:   mov    $0x0,%eax
+   0x0000555555556743 <+202>:   jmp    0x5555555566eb <phase_3+114>
+   0x0000555555556745 <+204>:   mov    $0x0,%eax
+   0x000055555555674a <+209>:   jmp    0x5555555566f0 <phase_3+119>
+   0x000055555555674c <+211>:   callq  0x555555556e41 <explode_bomb>
+   0x0000555555556751 <+216>:   mov    $0x0,%eax
+   0x0000555555556756 <+221>:   jmp    0x5555555566f5 <phase_3+124>
+   0x0000555555556758 <+223>:   callq  0x555555556250 <__stack_chk_fail@plt>
+End of assembler dump.
+
+1. disas phase_3 to see assembler dump, code shown above.
+2. Mark important lines (compare, moves)
+3. Examine registers to see what format the input should follow:
+    In line <+32>, we move a value from one place to another:       
+        lea    0x1d8d(%rip),%rsi
+        - %rip is the hex value representing the memory address that rip stores its value in
+        - When surrounding $rip in parentheses like this: (%rip), and putting a hex value on the outside of the parentheses,
+          this is equivalent to adding both hex values. In this case:
+            - $rip = 0x555555556699 = 93824992241305
+            - 0x1d8d = 7565
+            - 0x1d8d(%rip) = 93824992241305 + 7565 = 93824992248870
+        - When examining this memory address (by typing 'x/s 93824992248870' in the gdb command line), our output is:
+          " %d %d %d %d"
+        - This means that our input should follow the format of four integers, each separated by a space.
+
+    While the pointer is still at <+32>, I'm also curious about what value we're comparing to 7 in line <+49>
+        - x/d $rsp to get the value stored in rsp
+        - outputs 0: our first digit!

